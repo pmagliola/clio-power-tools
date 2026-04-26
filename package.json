@@ -1,0 +1,12 @@
+{
+  "name": "clio-power-tools",
+  "version": "0.1.0",
+  "description": "Chrome extension — one-click time tracking for Clio Manage",
+  "type": "module",
+  "scripts": {
+    "icons": "node generate-icons.js"
+  },
+  "devDependencies": {
+    "sharp": "^0.33.0"
+  }
+}

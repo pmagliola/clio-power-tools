@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Clio Power Tools",
+  "version": "0.1.0",
+  "description": "One-click time tracking for Clio Manage. Start a timer, log time directly to the right matter — without leaving the page.",
+  "permissions": [
+    "storage",
+    "identity"
+  ],
+  "host_permissions": [
+    "https://app.clio.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://app.clio.com/*"],
+      "js": ["src/content.js"],
+      "css": ["src/timer.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
