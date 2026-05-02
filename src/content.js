@@ -354,6 +354,9 @@
     window.addEventListener('hashchange', refreshMatterContext);
   }
 
+  // Detect and store the regional Clio URL for the background service worker
+  chrome.storage.local.set({ clioBaseUrl: window.location.origin });
+
   // Wait until Clio's app shell has rendered
   if (document.body) {
     init();

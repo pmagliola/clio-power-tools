@@ -1,4 +1,11 @@
-import { CLIO_CLIENT_ID, CLIO_CLIENT_SECRET, CLIO_SCOPES, CLIO_BASE_URL } from './config.js';
+import { CLIO_CLIENT_ID, CLIO_CLIENT_SECRET, CLIO_SCOPES, CLIO_REGIONS } from './config.js';
+
+// ─── Region detection ─────────────────────────────────────────────────────────
+
+async function getBaseUrl() {
+  const { clioBaseUrl } = await chrome.storage.local.get('clioBaseUrl');
+  return clioBaseUrl || CLIO_REGIONS[0];
+}
 
 // ─── Token management ─────────────────────────────────────────────────────────
 
@@ -23,10 +30,11 @@ async function getValidToken() {
 }
 
 async function refreshAccessToken(refreshToken) {
-  const response = await fetch(`${CLIO_BASE_URL}/oauth/token`, {
+  const baseUrl = await getBaseUrl();
+  const response = await fetch(`${baseUrl}/oauth/token`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
       grant_type: 'refresh_token',
       client_id: CLIO_CLIENT_ID,
       client_secret: CLIO_CLIENT_SECRET,
@@ -56,9 +64,10 @@ async function persistTokens(tokenData) {
 // ─── OAuth flow ───────────────────────────────────────────────────────────────
 
 async function connectToClio() {
+  const detectedUrl = await getBaseUrl();
   const redirectUri = chrome.identity.getRedirectURL();
 
-  const authUrl = new URL(`${CLIO_BASE_URL}/oauth/authorize`);
+  const authUrl = new URL(`${detectedUrl}/oauth/authorize`);
   authUrl.searchParams.set('response_type', 'code');
   authUrl.searchParams.set('client_id', CLIO_CLIENT_ID);
   authUrl.searchParams.set('redirect_uri', redirectUri);
@@ -78,25 +87,38 @@ async function connectToClio() {
   const code = url.searchParams.get('code');
   if (!code) throw new Error('No authorisation code returned from Clio');
 
-  const tokenResponse = await fetch(`${CLIO_BASE_URL}/oauth/token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      grant_type: 'authorization_code',
-      client_id: CLIO_CLIENT_ID,
-      client_secret: CLIO_CLIENT_SECRET,
-      redirect_uri: redirectUri,
-      code,
-    }),
-  });
+  // Try detected region first, then fall back to others
+  const regionsToTry = [
+    detectedUrl,
+    ...CLIO_REGIONS.filter(r => r !== detectedUrl),
+  ];
 
-  if (!tokenResponse.ok) {
-    const body = await tokenResponse.text().catch(() => '');
-    throw new Error(`Token exchange failed (${tokenResponse.status}): ${body}`);
+  for (const baseUrl of regionsToTry) {
+    try {
+      const tokenResponse = await fetch(`${baseUrl}/oauth/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          client_id: CLIO_CLIENT_ID,
+          client_secret: CLIO_CLIENT_SECRET,
+          redirect_uri: redirectUri,
+          code,
+        }),
+      });
+
+      if (tokenResponse.ok) {
+        const tokenData = await tokenResponse.json();
+        await persistTokens(tokenData);
+        await chrome.storage.local.set({ clioBaseUrl: baseUrl });
+        return;
+      }
+    } catch {
+      // CORS or network error on this region — try next
+    }
   }
 
-  const tokenData = await tokenResponse.json();
-  await persistTokens(tokenData);
+  throw new Error('Could not connect to Clio. Please try again.');
 }
 
 async function disconnectFromClio() {
@@ -109,6 +131,7 @@ async function createTimeEntry({ matterId, seconds, date, description }) {
   const token = await getValidToken();
   if (!token) throw new Error('Not connected to Clio. Please connect from the extension popup.');
 
+  const baseUrl = await getBaseUrl();
   const body = {
     data: {
       type: 'TimeEntry',
@@ -119,7 +142,7 @@ async function createTimeEntry({ matterId, seconds, date, description }) {
     },
   };
 
-  const response = await fetch(`${CLIO_BASE_URL}/api/v4/activities.json`, {
+  const response = await fetch(`${baseUrl}/api/v4/activities.json`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -129,8 +152,8 @@ async function createTimeEntry({ matterId, seconds, date, description }) {
   });
 
   if (!response.ok) {
-    const body = await response.text().catch(() => '');
-    throw new Error(`Clio API error (${response.status}): ${body.slice(0, 200)}`);
+    const errBody = await response.text().catch(() => '');
+    throw new Error(`Clio API error (${response.status}): ${errBody.slice(0, 200)}`);
   }
 
   return await response.json();
@@ -140,8 +163,9 @@ async function getMatter(matterId) {
   const token = await getValidToken();
   if (!token) return null;
 
+  const baseUrl = await getBaseUrl();
   const response = await fetch(
-    `${CLIO_BASE_URL}/api/v4/matters/${matterId}.json?fields=id,display_number,description`,
+    `${baseUrl}/api/v4/matters/${matterId}.json?fields=id,display_number,description`,
     { headers: { Authorization: `Bearer ${token}` } },
   );
 

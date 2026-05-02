@@ -8,7 +8,10 @@
     "identity"
   ],
   "host_permissions": [
-    "https://app.clio.com/*"
+    "https://app.clio.com/*",
+    "https://au.app.clio.com/*",
+    "https://eu.app.clio.com/*",
+    "https://ca.app.clio.com/*"
   ],
   "background": {
     "service_worker": "src/background.js",
@@ -16,7 +19,12 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://app.clio.com/*"],
+      "matches": [
+        "https://app.clio.com/*",
+        "https://au.app.clio.com/*",
+        "https://eu.app.clio.com/*",
+        "https://ca.app.clio.com/*"
+      ],
       "js": ["src/content.js"],
       "css": ["src/timer.css"],
       "run_at": "document_idle"
