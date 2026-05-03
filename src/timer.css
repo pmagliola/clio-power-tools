@@ -137,6 +137,36 @@
   border-color: #047857;
 }
 
+/* ─── Trial status bar ────────────────────────────────────────────────────── */
+
+#cpt-trial-bar {
+  margin-top: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.4;
+  display: none;
+}
+
+#cpt-trial-bar.cpt-trial-active {
+  display: block;
+  background: rgba(5, 150, 105, 0.15);
+  color: #6ee7b7;
+}
+
+#cpt-trial-bar.cpt-trial-none {
+  display: block;
+  background: rgba(255, 255, 255, 0.07);
+  color: #94a3b8;
+}
+
+#cpt-trial-bar.cpt-trial-expired {
+  display: block;
+  background: rgba(220, 38, 38, 0.15);
+  color: #fca5a5;
+}
+
 /* ─── Log dialog ──────────────────────────────────────────────────────────── */
 
 #cpt-dialog {

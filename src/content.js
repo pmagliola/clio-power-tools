@@ -35,6 +35,7 @@
           <button id="cpt-reset" class="cpt-btn">Reset</button>
           <button id="cpt-log" class="cpt-btn cpt-btn-log" disabled>Log</button>
         </div>
+        <div id="cpt-trial-bar"></div>
       </div>
     `;
     return el;
@@ -43,6 +44,8 @@
   // ─── Timer display ───────────────────────────────────────────────────────────
 
   let tickInterval = null;
+  let paymentStatus = null;  // cached; refreshed on init
+  let authConnected = false; // cached; refreshed on init
 
   function formatSeconds(total) {
     const h = Math.floor(total / 3600);
@@ -96,6 +99,7 @@
 
     updateMatterDisplay(state.currentMatterName || null);
     refreshMatterContext();
+    refreshWidgetStatus();
   }
 
   function startTicking(accumulatedSeconds, startTime) {
@@ -111,6 +115,56 @@
       clearInterval(tickInterval);
       tickInterval = null;
     }
+  }
+
+  // ─── Payment status bar ──────────────────────────────────────────────────────
+
+  async function refreshWidgetStatus() {
+    try {
+      const [authResult, status] = await Promise.all([
+        chrome.runtime.sendMessage({ type: 'GET_AUTH_STATUS' }),
+        chrome.runtime.sendMessage({ type: 'GET_PAYMENT_STATUS' }),
+      ]);
+      authConnected = authResult?.connected ?? false;
+      paymentStatus = status ?? null;
+    } catch {
+      authConnected = false;
+      paymentStatus = null;
+    }
+
+    const bar = document.getElementById('cpt-trial-bar');
+    if (!bar) return;
+
+    bar.className = '';
+    bar.textContent = '';
+
+    if (!authConnected) {
+      bar.className = 'cpt-trial-none';
+      bar.textContent = 'Not connected — open the extension to connect to Clio';
+    } else if (!paymentStatus || paymentStatus.paid) {
+      // connected + paid (or status unknown): no bar needed
+    } else if (paymentStatus.trialStartedAt === null) {
+      bar.className = 'cpt-trial-none';
+      bar.textContent = 'Free plan — open the extension to start your trial and unlock logging';
+    } else if (paymentStatus.trialDaysLeft > 0) {
+      bar.className = 'cpt-trial-active';
+      bar.textContent = `Trial — ${paymentStatus.trialDaysLeft} day${paymentStatus.trialDaysLeft === 1 ? '' : 's'} left`;
+    } else {
+      bar.className = 'cpt-trial-expired';
+      bar.textContent = 'Trial expired — open the extension to upgrade and keep logging';
+    }
+  }
+
+  function flashTrialBar(message) {
+    const bar = document.getElementById('cpt-trial-bar');
+    if (!bar) return;
+    const prev = { className: bar.className, text: bar.textContent };
+    bar.className = 'cpt-trial-expired';
+    bar.textContent = message;
+    setTimeout(() => {
+      bar.className = prev.className;
+      bar.textContent = prev.text;
+    }, 4000);
   }
 
   // ─── Controls ────────────────────────────────────────────────────────────────
@@ -158,6 +212,22 @@
   // ─── Log dialog ──────────────────────────────────────────────────────────────
 
   async function onLog() {
+    // Check auth + payment status before opening dialog
+    if (!authConnected) {
+      flashTrialBar('Not connected — open the extension to connect to Clio');
+      return;
+    }
+    if (paymentStatus && !paymentStatus.paid) {
+      if (paymentStatus.trialStartedAt === null) {
+        flashTrialBar('Open the extension icon to start your free trial first');
+        return;
+      }
+      if (paymentStatus.trialDaysLeft <= 0) {
+        flashTrialBar('Trial expired — open the extension icon to upgrade');
+        return;
+      }
+    }
+
     const state = await chrome.storage.local.get([
       'accumulatedSeconds',
       'currentMatterId',
@@ -360,13 +430,38 @@
     window.addEventListener('hashchange', refreshMatterContext);
   }
 
+  // Check that Clio's SPA app shell has actually rendered.
+  // Server-side error pages (400, 500) won't have nav or role="navigation".
+  function clioAppIsReady() {
+    return !!(
+      document.querySelector('nav') ||
+      document.querySelector('[role="navigation"]') ||
+      document.querySelector('[data-ember-application]')
+    );
+  }
+
+  // Wait for the app shell, then init. Gives up after maxWaitMs (don't inject on error pages).
+  function waitForClioAppThenInit(maxWaitMs = 15000) {
+    if (clioAppIsReady()) { init(); return; }
+
+    const start = Date.now();
+    const observer = new MutationObserver(() => {
+      if (clioAppIsReady()) {
+        observer.disconnect();
+        init();
+      } else if (Date.now() - start > maxWaitMs) {
+        observer.disconnect(); // error page or very slow — don't inject
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   // Detect and store the regional Clio URL for the background service worker
   chrome.storage.local.set({ clioBaseUrl: window.location.origin });
 
-  // Wait until Clio's app shell has rendered
   if (document.body) {
-    init();
+    waitForClioAppThenInit();
   } else {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', waitForClioAppThenInit);
   }
 })();
