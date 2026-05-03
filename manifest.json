@@ -11,10 +11,11 @@
     "https://app.clio.com/*",
     "https://au.app.clio.com/*",
     "https://eu.app.clio.com/*",
-    "https://ca.app.clio.com/*"
+    "https://ca.app.clio.com/*",
+    "https://extensionpay.com/*"
   ],
   "background": {
-    "service_worker": "src/background.js",
+    "service_worker": "dist/background.js",
     "type": "module"
   },
   "content_scripts": [
@@ -25,13 +26,19 @@
         "https://eu.app.clio.com/*",
         "https://ca.app.clio.com/*"
       ],
-      "js": ["src/content.js"],
+      "exclude_matches": [
+        "https://app.clio.com/oauth/*",
+        "https://au.app.clio.com/oauth/*",
+        "https://eu.app.clio.com/oauth/*",
+        "https://ca.app.clio.com/oauth/*"
+      ],
+      "js": ["dist/content.js"],
       "css": ["src/timer.css"],
       "run_at": "document_idle"
     }
   ],
   "action": {
-    "default_popup": "src/popup.html",
+    "default_popup": "dist/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",

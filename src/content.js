@@ -240,7 +240,13 @@
     });
 
     if (result.error) {
-      statusEl.textContent = result.error;
+      if (result.error === 'trial_not_started') {
+        statusEl.textContent = 'Start your free trial from the extension icon to log time.';
+      } else if (result.error === 'upgrade_required') {
+        statusEl.textContent = 'Your trial has ended. Click the extension icon to upgrade.';
+      } else {
+        statusEl.textContent = result.error;
+      }
       statusEl.className = 'cpt-status-error';
       saveBtn.disabled = false;
       saveBtn.textContent = 'Save to Clio';

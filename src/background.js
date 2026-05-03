@@ -1,4 +1,21 @@
-import { CLIO_CLIENT_ID, CLIO_CLIENT_SECRET, CLIO_SCOPES, CLIO_REGIONS } from './config.js';
+import { CLIO_CLIENT_ID, CLIO_CLIENT_SECRET, CLIO_SCOPES, CLIO_REGIONS, EXTENSIONPAY_ID } from './config.js';
+import ExtPay from 'extpay';
+
+const extpay = ExtPay(EXTENSIONPAY_ID);
+extpay.startBackground();
+
+// ─── Payment status ───────────────────────────────────────────────────────────
+
+async function isAllowedToLog() {
+  const user = await extpay.getUser();
+  if (user.paid) return true;
+  if (user.trialStartedAt) {
+    const trialDays = 14;
+    const elapsed = (Date.now() - user.trialStartedAt.getTime()) / (1000 * 60 * 60 * 24);
+    return elapsed < trialDays;
+  }
+  return false;
+}
 
 // ─── Region detection ─────────────────────────────────────────────────────────
 
@@ -63,8 +80,7 @@ async function persistTokens(tokenData) {
 
 // ─── OAuth flow ───────────────────────────────────────────────────────────────
 
-async function connectToClio() {
-  const detectedUrl = await getBaseUrl();
+async function attemptOAuth(detectedUrl) {
   const redirectUri = chrome.identity.getRedirectURL();
 
   const authUrl = new URL(`${detectedUrl}/oauth/authorize`);
@@ -80,14 +96,13 @@ async function connectToClio() {
       interactive: true,
     });
   } catch (err) {
-    throw new Error(`OAuth cancelled or failed: ${err.message}`);
+    throw err;
   }
 
   const url = new URL(responseUrl);
   const code = url.searchParams.get('code');
   if (!code) throw new Error('No authorisation code returned from Clio');
 
-  // Try detected region first, then fall back to others
   const regionsToTry = [
     detectedUrl,
     ...CLIO_REGIONS.filter(r => r !== detectedUrl),
@@ -119,6 +134,22 @@ async function connectToClio() {
   }
 
   throw new Error('Could not connect to Clio. Please try again.');
+}
+
+async function connectToClio() {
+  const detectedUrl = await getBaseUrl();
+  try {
+    await attemptOAuth(detectedUrl);
+  } catch (err) {
+    // If the user explicitly cancelled, stop immediately
+    const msg = err.message ?? '';
+    if (msg.includes('cancel') || msg.includes('Cancel') || msg.includes('closed by user')) {
+      throw new Error('Connection cancelled.');
+    }
+    // Otherwise retry once — handles the login-then-consent case where
+    // the initial flow errors out after login before reaching the consent screen
+    await attemptOAuth(detectedUrl);
+  }
 }
 
 async function disconnectFromClio() {
@@ -198,11 +229,38 @@ async function handleMessage(message) {
       return { connected: !!token };
     }
 
-    case 'CREATE_TIME_ENTRY':
+    case 'CREATE_TIME_ENTRY': {
+      const user = await extpay.getUser();
+      if (!user.paid && !user.trialStartedAt) return { error: 'trial_not_started' };
+      if (!user.paid && user.trialStartedAt) {
+        const elapsed = (Date.now() - user.trialStartedAt.getTime()) / (1000 * 60 * 60 * 24);
+        if (elapsed >= 14) return { error: 'upgrade_required' };
+      }
       return await createTimeEntry(message.payload);
+    }
 
     case 'GET_MATTER':
       return await getMatter(message.matterId);
+
+    case 'GET_PAYMENT_STATUS': {
+      const user = await extpay.getUser();
+      const trialDays = 14;
+      const trialStartedAt = user.trialStartedAt;
+      let trialDaysLeft = null;
+      if (trialStartedAt && !user.paid) {
+        const elapsed = (Date.now() - trialStartedAt.getTime()) / (1000 * 60 * 60 * 24);
+        trialDaysLeft = Math.max(0, Math.ceil(trialDays - elapsed));
+      }
+      return { paid: user.paid, trialStartedAt: trialStartedAt?.toISOString() ?? null, trialDaysLeft };
+    }
+
+    case 'OPEN_PAYMENT_PAGE':
+      extpay.openPaymentPage();
+      return { success: true };
+
+    case 'OPEN_TRIAL_PAGE':
+      extpay.openTrialPage();
+      return { success: true };
 
     default:
       throw new Error(`Unknown message type: ${message.type}`);
