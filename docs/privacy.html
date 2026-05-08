@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Clio Tools</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #111827;
+      background: #fff;
+      line-height: 1.7;
+    }
+    nav {
+      background: #16213e;
+      padding: 16px 24px;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 32px;
+      height: 32px;
+      background: #2563eb;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .nav-logo-text {
+      font-size: 17px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+    .content {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .updated {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 40px;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 36px;
+      margin-bottom: 12px;
+    }
+    p { margin-bottom: 14px; color: #374151; }
+    ul { padding-left: 20px; margin-bottom: 14px; color: #374151; }
+    li { margin-bottom: 6px; }
+    a { color: #2563eb; }
+    footer {
+      background: #0f172a;
+      padding: 24px;
+      text-align: center;
+      font-size: 13px;
+      color: #475569;
+    }
+    footer a { color: #64748b; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="nav-logo">
+      <div class="nav-logo-icon">⏱</div>
+      <span class="nav-logo-text">Clio Tools</span>
+    </a>
+  </nav>
+
+  <div class="content">
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: May 2026</p>
+
+    <p>Clio Tools ("the extension") is a Chrome extension built by Handstands.io. This policy explains what data we collect, how we use it, and your rights.</p>
+
+    <h2>What data we collect</h2>
+    <p>The extension collects and stores the following data locally on your device:</p>
+    <ul>
+      <li>Your Clio OAuth access token and refresh token (stored in Chrome's secure local storage, used to authenticate API requests to Clio on your behalf)</li>
+      <li>Your Clio region (e.g. app.clio.com, au.app.clio.com) detected during OAuth</li>
+      <li>Timer state (running/paused, elapsed seconds) stored locally so the timer persists across page navigations</li>
+    </ul>
+
+    <h2>What data we do NOT collect</h2>
+    <ul>
+      <li>We do not collect, transmit, or store your Clio credentials (username or password)</li>
+      <li>We do not collect personal information about you beyond what is described above</li>
+      <li>We do not track your browsing activity</li>
+      <li>We do not sell data to third parties</li>
+    </ul>
+
+    <h2>Clio API access</h2>
+    <p>When you log a time entry, the extension makes a direct API call from your browser to Clio's servers using your OAuth token. This data goes directly to Clio — it does not pass through any Clio Tools servers.</p>
+
+    <h2>Payments</h2>
+    <p>Payments are handled by <a href="https://extensionpay.com" target="_blank">ExtensionPay</a>, which uses Stripe as its payment processor. Clio Tools never sees or stores your payment information. ExtensionPay's privacy policy applies to payment data.</p>
+
+    <h2>Analytics</h2>
+    <p>The extension does not use any analytics or tracking tools. We do not know how you use the extension.</p>
+
+    <h2>Data retention and deletion</h2>
+    <p>All data stored by the extension lives in Chrome's local storage on your device. You can delete it at any time by removing the extension from Chrome (chrome://extensions). This also revokes the extension's access to your Clio account via OAuth.</p>
+
+    <h2>Third-party services</h2>
+    <p>The extension interacts with the following third-party services:</p>
+    <ul>
+      <li><strong>Clio (Themis Solutions Inc.)</strong> — for time entry API calls. Subject to Clio's privacy policy.</li>
+      <li><strong>ExtensionPay / Stripe</strong> — for subscription payments. Subject to ExtensionPay's and Stripe's privacy policies.</li>
+    </ul>
+    <p>Clio Tools is an independent product and is not affiliated with or endorsed by Themis Solutions Inc.</p>
+
+    <h2>Changes to this policy</h2>
+    <p>We may update this policy from time to time. Changes will be posted on this page with an updated date.</p>
+
+    <h2>Contact</h2>
+    <p>Questions? Email <a href="mailto:pablo@handstands.io">pablo@handstands.io</a>.</p>
+  </div>
+
+  <footer>
+    <a href="/">Clio Tools</a> &nbsp;·&nbsp; <a href="/privacy.html">Privacy Policy</a> &nbsp;·&nbsp; <a href="mailto:pablo@handstands.io">Support</a>
+  </footer>
+
+</body>
+</html>
