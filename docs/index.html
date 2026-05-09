@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clio Tools — Faster Time Tracking for Clio</title>
+  <title>Clio Tools - Faster Time Tracking for Clio</title>
   <meta name="description" content="A Chrome extension that adds a floating one-click timer directly inside Clio Manage. Start tracking time without leaving the page you're working on.">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,12 +48,17 @@
     .nav-logo-icon {
       width: 32px;
       height: 32px;
-      background: var(--blue);
-      border-radius: 8px;
+      border-radius: 6px;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+    }
+
+    .nav-logo-icon img {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
     }
 
     .nav-logo-text {
@@ -378,13 +383,9 @@
     .problem-card {
       background: var(--bg);
       border: 1px solid var(--border);
+      border-left: 3px solid #dc2626;
       border-radius: 12px;
       padding: 28px;
-    }
-
-    .problem-icon {
-      font-size: 28px;
-      margin-bottom: 14px;
     }
 
     .problem-card h3 {
@@ -658,7 +659,7 @@
   <!-- Nav -->
   <nav>
     <a href="/" class="nav-logo">
-      <div class="nav-logo-icon">⏱</div>
+      <div class="nav-logo-icon"><img src="/logo.png" alt="Clio Tools"></div>
       <span class="nav-logo-text">Clio Tools</span>
     </a>
     <a href="mailto:sales@handstands.io" class="nav-cta">Get Early Access</a>
@@ -671,7 +672,7 @@
     <p>A floating one-click timer that lives inside Clio Manage. Start tracking, log to any matter — without leaving the page you're on.</p>
     <div class="hero-actions">
       <a href="mailto:sales@handstands.io?subject=Clio Tools Early Access" class="btn-primary">
-        &#x2713; Get Early Access — It's Free
+        &#x2713; Get Early Access - It's Free
       </a>
     </div>
     <p class="hero-note">14-day free trial &nbsp;·&nbsp; No credit card required &nbsp;·&nbsp; Works with all Clio regions</p>
@@ -706,7 +707,7 @@
               <div class="wr-btn">Reset</div>
               <div class="wr-btn log">Log</div>
             </div>
-            <div class="wr-bar">Trial active — 11 days left</div>
+            <div class="wr-bar">Trial active - 11 days left</div>
           </div>
         </div>
       </div>
@@ -716,22 +717,18 @@
   <!-- Problem -->
   <section class="section">
     <div class="section-inner">
-      <div class="section-label">The Problem</div>
       <h2>Clio's time tracking breaks your flow.</h2>
       <p class="lead">Every interruption costs you focus — and when time tracking requires multiple clicks and tab switches, most of it never gets logged.</p>
       <div class="problem-grid">
         <div class="problem-card">
-          <div class="problem-icon">🔀</div>
           <h3>Tab switching kills focus</h3>
           <p>To log 6 minutes of work, you're clicking through multiple Clio screens, losing your train of thought every time.</p>
         </div>
         <div class="problem-card">
-          <div class="problem-icon">🌅</div>
           <h3>End-of-day logging loses accuracy</h3>
           <p>Trying to reconstruct what you did three hours ago means estimates, not actual time. That's money left on the table.</p>
         </div>
         <div class="problem-card">
-          <div class="problem-icon">⏳</div>
           <h3>Clio's timer is buried</h3>
           <p>Clio has a timer, but it's deep in the interface. By the time you find it, you've already stopped thinking about what you were doing.</p>
         </div>
@@ -743,7 +740,6 @@
   <section class="how-section">
     <div class="section-inner">
       <div style="text-align:center">
-        <div class="section-label">How It Works</div>
         <h2>Up and running in 60 seconds.</h2>
       </div>
       <div class="steps">
@@ -769,7 +765,6 @@
   <!-- Features -->
   <section class="section">
     <div class="section-inner">
-      <div class="section-label">Features</div>
       <h2>Everything you need, nothing you don't.</h2>
       <p class="lead">Clio Tools is deliberately simple. It does one thing well: keeps time tracking out of your way.</p>
       <div class="features-grid">
@@ -822,7 +817,6 @@
   <!-- Pricing -->
   <section class="how-section">
     <div class="section-inner" style="text-align:center">
-      <div class="section-label">Pricing</div>
       <h2>Simple, transparent pricing.</h2>
       <p class="lead" style="margin: 0 auto 0">Try it free for 14 days. Then $9.99/month — less than the cost of one missed billable hour.</p>
       <div class="pricing-grid">
@@ -873,7 +867,7 @@
     <p>
       <strong style="color:#64748b">Clio Tools</strong> &nbsp;·&nbsp;
       <a href="/privacy.html">Privacy Policy</a> &nbsp;·&nbsp;
-      <a href="mailto:sales@handstands.io">Support</a>
+      <a href="mailto:support@handstands.io">Support</a>
     </p>
     <p style="margin-top:10px">Clio Tools is an independent product. Not affiliated with or endorsed by Themis Solutions Inc.</p>
   </footer>
